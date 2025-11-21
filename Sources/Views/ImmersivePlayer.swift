@@ -35,6 +35,15 @@ public struct ImmersivePlayer: View {
     /// The pose tracker ensuring the position of the control panel attachment is fixed relatively to the viewer.
     private let headTracker = HeadTracker()
     
+    /// Stores the default/origin transform (captured from the video screen's initial transform)
+    @State private var defaultProjectionTransform: Transform?
+    
+    /// External control of the projection plane's position offset relative to the default origin
+    @Binding var projectionOffset: SIMD3<Float>
+    
+    /// External control of the projection plane's orientation offset relative to the default origin
+    @Binding var projectionOrientation: simd_quatf
+    
     /// Public initializer for visibility.
     /// - Parameters:
     ///   - selectedStream: the stream for which the player will be open.
@@ -42,7 +51,19 @@ public struct ImmersivePlayer: View {
     ///   - playbackEndedAction: the optional callback to execute when playback reaches the end of the video.
     ///   - customButtons: an optional view builder for custom buttons to add to the control panel.
     ///   - customAttachments: an optional list of view builders for custom attachments to add to the immersive player.
-    public init(selectedStream: StreamModel, closeAction: CustomAction? = nil, playbackEndedAction: CustomAction? = nil, customButtons: CustomViewBuilder? = nil, customAttachments: [CustomAttachment] = []) {
+    ///   - projectionOffset: binding to control the projection plane's position offset relative to the head (default: [0, 0, 0]).
+    ///   - projectionOrientation: binding to control the projection plane's orientation relative to the head (default: identity rotation).
+    public init(
+        selectedStream: StreamModel,
+        closeAction: CustomAction? = nil,
+        playbackEndedAction: CustomAction? = nil,
+        customButtons: CustomViewBuilder? = nil,
+        customAttachments: [CustomAttachment] = [],
+        projectionOffset: Binding<SIMD3<Float>> = .constant([0, 0, 0]),
+        projectionOrientation: Binding<simd_quatf> = .constant(simd_quatf(angle: 0, axis: [0, 1, 0]))
+    ) {
+        self._projectionOffset = projectionOffset
+        self._projectionOrientation = projectionOrientation
         self.selectedStream = selectedStream
         self.closeAction = closeAction
         self.customButtons = customButtons
@@ -67,6 +88,19 @@ public struct ImmersivePlayer: View {
             
             // Setup video sphere/half sphere entity
             root.addChild(videoScreen.entity)
+            
+            // Capture the default transform from the video screen
+            if defaultProjectionTransform == nil {
+                defaultProjectionTransform = videoScreen.entity.transform
+            }
+            
+            // Apply offset from the default transform (not from zero)
+            if let defaultTransform = defaultProjectionTransform {
+                var offsetTransform = defaultTransform
+                offsetTransform.translation = defaultTransform.translation + projectionOffset
+                offsetTransform.rotation = projectionOrientation * defaultTransform.rotation
+                videoScreen.entity.transform = offsetTransform
+            }
             
             // Setup ControlPanel as a floating window within the immersive scene
             if let controlPanel = attachments.entity(for: "ControlPanel") {
@@ -113,6 +147,14 @@ public struct ImmersivePlayer: View {
             
             if let errorView = attachments.entity(for: "ErrorView") {
                 errorView.isEnabled = videoPlayer.error != nil
+            }
+            
+            // Keep projection transform in sync each frame relative to default origin
+            if let defaultTransform = defaultProjectionTransform {
+                var offsetTransform = defaultTransform
+                offsetTransform.translation = defaultTransform.translation + projectionOffset
+                offsetTransform.rotation = projectionOrientation * defaultTransform.rotation
+                videoScreen.entity.transform = offsetTransform
             }
         } placeholder: {
             ProgressView()
