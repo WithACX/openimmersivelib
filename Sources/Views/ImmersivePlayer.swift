@@ -44,6 +44,9 @@ public struct ImmersivePlayer: View {
     /// External control of the projection plane's orientation offset relative to the default origin
     @Binding var projectionOrientation: simd_quatf
     
+    /// External control of the projection plane's width/scale
+    @Binding var projectionWidth: Float
+    
     /// Public initializer for visibility.
     /// - Parameters:
     ///   - selectedStream: the stream for which the player will be open.
@@ -53,6 +56,7 @@ public struct ImmersivePlayer: View {
     ///   - customAttachments: an optional list of view builders for custom attachments to add to the immersive player.
     ///   - projectionOffset: binding to control the projection plane's position offset relative to the head (default: [0, 0, 0]).
     ///   - projectionOrientation: binding to control the projection plane's orientation relative to the head (default: identity rotation).
+    ///   - projectionWidth: binding to control the projection plane's width/scale (default: 100.0, matching OpenImmersive's rectangularScreenTransform).
     public init(
         selectedStream: StreamModel,
         closeAction: CustomAction? = nil,
@@ -60,10 +64,12 @@ public struct ImmersivePlayer: View {
         customButtons: CustomViewBuilder? = nil,
         customAttachments: [CustomAttachment] = [],
         projectionOffset: Binding<SIMD3<Float>> = .constant([0, 0, 0]),
-        projectionOrientation: Binding<simd_quatf> = .constant(simd_quatf(angle: 0, axis: [0, 1, 0]))
+        projectionOrientation: Binding<simd_quatf> = .constant(simd_quatf(angle: 0, axis: [0, 1, 0])),
+        projectionWidth: Binding<Float> = .constant(100.0)
     ) {
         self._projectionOffset = projectionOffset
         self._projectionOrientation = projectionOrientation
+        self._projectionWidth = projectionWidth
         self.selectedStream = selectedStream
         self.closeAction = closeAction
         self.customButtons = customButtons
@@ -196,7 +202,7 @@ public struct ImmersivePlayer: View {
             videoPlayer.play()
             
             let projection = selectedStream.projection ?? .equirectangular(fieldOfView: 180)
-            videoScreen.update(source: videoPlayer, projection: projection)
+            videoScreen.update(source: videoPlayer, projection: projection, width: projectionWidth)
         }
         .onDisappear {
             videoPlayer.stop()

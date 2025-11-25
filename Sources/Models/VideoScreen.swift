@@ -27,7 +27,8 @@ public class VideoScreen {
     /// - Parameters:
     ///   - videoPlayer: the VideoPlayer instance
     ///   - projection: the projection type of the media
-    public func update(source videoPlayer: VideoPlayer, projection: StreamModel.Projection) {
+    ///   - width: the absolute width/scale of the screen (default: 100.0, matching rectangularScreenTransform)
+    public func update(source videoPlayer: VideoPlayer, projection: StreamModel.Projection, width: Float = 100.0) {
         switch projection {
         case .equirectangular(fieldOfView: _, force: _):
             // updateSphere() must be called only once to prevent creating multiple VideoMaterial instances
@@ -35,12 +36,16 @@ public class VideoScreen {
                 _ = videoPlayer.aspectRatio
             } onChange: {
                 Task { @MainActor in
-                    self.updateSphere(videoPlayer)
+                    self.updateSphere(videoPlayer, width: width)
                 }
             }
         
         case .rectangular:
-            self.updateNativePlayer(videoPlayer, transform: Self.rectangularScreenTransform)
+            let customTransform = Transform(
+                scale: .init(x: width, y: width, z: -width),
+                rotation: .init(),
+                translation: .init(x: 0, y: 0, z: -200))
+            self.updateNativePlayer(videoPlayer, transform: customTransform)
             
         case .appleImmersive:
             // the Apple Immersive Video entity should always use the identity transform
@@ -51,7 +56,8 @@ public class VideoScreen {
     /// Programmatically generates the sphere or half-sphere entity with a VideoMaterial onto which the video is projected.
     /// - Parameters:
     ///   - videoPlayer:the VideoPlayer instance
-    private func updateSphere(_ videoPlayer: VideoPlayer) {
+    ///   - width: the absolute scale to apply to the sphere
+    private func updateSphere(_ videoPlayer: VideoPlayer, width: Float = 100.0) {
         let (mesh, transform) = VideoTools.makeVideoMesh(
             hFov: videoPlayer.horizontalFieldOfView,
             vFov: videoPlayer.verticalFieldOfView
@@ -62,7 +68,11 @@ public class VideoScreen {
             mesh: mesh,
             materials: [VideoMaterial(avPlayer: videoPlayer.player)]
         )
-        entity.transform = transform
+        // Apply width scaling to the transform
+        var scaledTransform = transform
+        let scaleFactor = width / 100.0  // Normalize against default
+        scaledTransform.scale *= scaleFactor
+        entity.transform = scaledTransform
     }
     
     /// Sets up the entity with a VideoPlayerComponent that renders the video natively.
