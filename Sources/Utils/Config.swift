@@ -53,9 +53,9 @@ public final class Config: Sendable {
         }
         
         customHttpUrlScheme = config["customHttpUrlScheme"] as? String ?? "openimmersive"
-        controlPanelVerticalOffset = config["controlPanelVerticalOffset"] as? Float ?? -0.5
-        controlPanelHorizontalOffset = config["controlPanelHorizontalOffset"] as? Float ?? 0.7
-        controlPanelTilt = config["controlPanelTilt"] as? Float ?? 12.0
+        controlPanelVerticalOffset = (config["controlPanelVerticalOffset"] as? NSNumber)?.floatValue ?? -0.5
+        controlPanelHorizontalOffset = (config["controlPanelHorizontalOffset"] as? NSNumber)?.floatValue ?? 0.7
+        controlPanelTilt = (config["controlPanelTilt"] as? NSNumber)?.floatValue ?? 12.0
         controlPanelMediaInfoMaxHeight = config["controlPanelMediaInfoMaxHeight"] as? Float ?? 140
         controlPanelShowBitrate = config["controlPanelShowBitrate"] as? Bool ?? true
         controlPanelShowResolutionOptions = config["controlPanelShowResolutionOptions"] as? Bool ?? true
