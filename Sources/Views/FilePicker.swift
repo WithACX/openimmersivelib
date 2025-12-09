@@ -35,7 +35,7 @@ public struct FilePicker: View {
             case .success(let url):
                 // Hack: this should be mirrored by url.stopAccessingSecurityScopedResource(),
                 // but it would prevent playing the same file twice.
-                url.startAccessingSecurityScopedResource()
+                _ = url.startAccessingSecurityScopedResource()
                 
                 let isAivuFile = url.lastPathComponent.hasSuffix(".aivu")
                 let stream = StreamModel(

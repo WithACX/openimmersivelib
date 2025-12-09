@@ -100,7 +100,7 @@ public actor PlaylistReader {
         }
         
         // Run the tasks in parallel
-        await (parseResolutions, parseAudioOptions, setRawText)
+        _ = await (parseResolutions, parseAudioOptions, setRawText)
     }
     
     /// Parses a list of Resolution Options from the playlist.
