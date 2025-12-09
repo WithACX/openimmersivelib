@@ -192,7 +192,7 @@ public struct ImmersivePlayer: View {
             ForEach(customAttachments) { attachment in
                 Attachment(id: attachment.id) {
                     AnyView(attachment.body($videoPlayer))
-                        .animation(.easeInOut(duration: 0.3))
+                        .animation(.easeInOut(duration: 0.3), value: videoPlayer.shouldShowControlPanel)
                 }
             }
         }
