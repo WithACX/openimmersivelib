@@ -13,9 +13,23 @@ import Observation
 public class VideoScreen {
     /// The `Entity` containing the sphere or flat plane onto which the video is projected.
     public let entity: Entity = Entity()
+    private let backdropEntity: ModelEntity = {
+        let material = SimpleMaterial(color: .black, isMetallic: false)
+        let entity = ModelEntity(mesh: .generatePlane(width: 1, height: 1), materials: [material])
+        entity.name = "VideoScreen Backdrop"
+        entity.isEnabled = false
+        entity.transform = Transform(
+            scale: .one,
+            rotation: .init(),
+            translation: [0, 0, -0.1]
+        )
+        return entity
+    }()
     
     /// Public initializer for visibility.
-    public init() {}
+    public init() {
+        entity.addChild(backdropEntity)
+    }
     
     /// The transform to apply to the native VideoPlayerComponent when the projection is a simple rectangle.
     private static let rectangularScreenTransform = Transform(
@@ -51,6 +65,7 @@ public class VideoScreen {
             // the Apple Immersive Video entity should always use the identity transform
             self.updateNativePlayer(videoPlayer)
         }
+        updateBackdrop(for: projection, width: width)
     }
     
     /// Programmatically generates the sphere or half-sphere entity with a VideoMaterial onto which the video is projected.
@@ -90,5 +105,20 @@ public class VideoScreen {
         entity.components[ModelComponent.self] = nil
         entity.components[VideoPlayerComponent.self] = videoPlayerComponent
         entity.transform = transform
+    }
+    
+    private func updateBackdrop(for projection: StreamModel.Projection, width: Float) {
+        let shouldShowBackdrop: Bool = {
+            if case .rectangular = projection { return true }
+            return false
+        }()
+        backdropEntity.isEnabled = shouldShowBackdrop
+        guard shouldShowBackdrop else { return }
+        let baseWidth = max(width, 0.1)
+        backdropEntity.transform = Transform(
+            scale: [baseWidth * 1.5, baseWidth * 1.5, max(baseWidth * 0.01, 0.01)],
+            rotation: .init(),
+            translation: [0, 0, baseWidth * 0.05]
+        )
     }
 }
