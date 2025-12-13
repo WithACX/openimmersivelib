@@ -14,10 +14,12 @@ public class VideoScreen {
     /// The `Entity` containing the sphere or flat plane onto which the video is projected.
     public let entity: Entity = Entity()
     private let backdropEntity: ModelEntity = {
-        let material = SimpleMaterial(color: .black, isMetallic: false)
+        var material = UnlitMaterial()
+        material.color = .init(tint: .black)
         let entity = ModelEntity(mesh: .generatePlane(width: 1, height: 1), materials: [material])
         entity.name = "VideoScreen Backdrop"
         entity.isEnabled = false
+        entity.components.set(OpacityComponent(opacity: 1.0))
         entity.transform = Transform(
             scale: .one,
             rotation: .init(),
