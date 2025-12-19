@@ -57,7 +57,11 @@ public final class Config: Sendable {
         controlPanelHorizontalOffset = (config["controlPanelHorizontalOffset"] as? NSNumber)?.floatValue ?? 0.7
         controlPanelTilt = (config["controlPanelTilt"] as? NSNumber)?.floatValue ?? 12.0
         controlPanelMediaInfoMaxHeight = config["controlPanelMediaInfoMaxHeight"] as? Float ?? 140
+        #if DEV_FEATURES
+        controlPanelShowBitrate = true
+        #else
         controlPanelShowBitrate = config["controlPanelShowBitrate"] as? Bool ?? true
+        #endif
         controlPanelShowResolutionOptions = config["controlPanelShowResolutionOptions"] as? Bool ?? true
         controlPanelShowAudioOptions = config["controlPanelShowAudioOptions"] as? Bool ?? true
         if let controlPanelScrubberTintValue = config["controlPanelScrubberTint"] as? String,
